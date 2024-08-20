@@ -14,7 +14,6 @@ module SessionsHelper
 
   # 記憶トークンcookieに対応するユーザーを返す
   def current_user
-    # user_id に session[:user_id] を代入し、user_id が存在すれば @current_user への代入を実行
     if (user_id = session[:user_id])
       user = User.find_by(id: user_id)
       if user && session[:session_token] == user.session_token
@@ -22,7 +21,7 @@ module SessionsHelper
       end
     elsif (user_id = cookies.encrypted[:user_id])
       user = User.find_by(id: user_id)
-      if user&.authenticated?(cookies[:remember_token])
+      if user && user.authenticated?(:remember, cookies[:remember_token])
         log_in user
         @current_user = user
       end
