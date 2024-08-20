@@ -1,6 +1,6 @@
 class User < ApplicationRecord
-  attr_accessor :remember_token
-  before_save { self.email = email.downcase }
+  attr_accessor :remember_token, :activation_token
+  before_save :downcase_email
   validates :name, presence: true, length: { maximum: 50 }
   VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
   validates :email, presence: true, length: { maximum: 255 },
@@ -20,7 +20,6 @@ class User < ApplicationRecord
     def new_token
       SecureRandom.urlsafe_base64
     end
-
   end
 
   # 永続的セッションのためにユーザーをデータベースに記憶する
@@ -45,5 +44,17 @@ class User < ApplicationRecord
   # ユーザーのログイン情報を忘れる
   def forget
     update_attribute(:remember_digest, nil)
+  end
+
+  private
+
+  def downcase_email
+    email.downcase!
+  end
+
+  # 有効化トークンとダイジェストを作成および代入する
+  def create_activation_digest
+    self.activation_token = User.new_token
+    self.activation_digest = User.digest(activation_token)
   end
 end
